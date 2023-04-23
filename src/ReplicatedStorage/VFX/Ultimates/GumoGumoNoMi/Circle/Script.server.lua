@@ -1,0 +1,1 @@
+game:GetService("TweenService"):Create(script.Parent, TweenInfo.new(2.5), {Size = Vector3.new(15, 1, 15), Transparency = 1}):Play()
