@@ -307,7 +307,6 @@ KnockbackEvent.OnClientEvent:Connect(function(Direction) -- Ragdoll & Knockback
 			
 		task.delay(Duration, function()
 			Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-			Humanoid:EquipTool(Player.Backpack:FindFirstChildOfClass("Tool"))
 		end)
 	end
 end)
