@@ -1,5 +1,5 @@
 {
-  "name": "project",
+  "name": "Fruit Battles",
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {

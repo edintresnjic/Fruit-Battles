@@ -682,6 +682,32 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			PlayerCharacter:SetAttribute("CanShoot", false)
 			PlayerCharacter.Humanoid:UnequipTools()
 
+			local Ultimate = Instance.new("StringValue")
+			Ultimate.Name = "Ultimate"
+			Ultimate:SetAttribute("Ultimate", "GomuGomuNoMi")
+			Ultimate.Parent = PlayerCharacter
+
+			local AnimateScript = PlayerCharacter:WaitForChild("Animate")
+			local PreviousIdle1 = AnimateScript.idle.Animation1.AnimationId
+			local PreviousIdle2 = AnimateScript.idle.Animation2.AnimationId
+
+			-- Delays
+			task.delay(30, function()
+				Ultimate:Destroy()
+				PlayerCharacter:SetAttribute("InUltimate", false)
+				AnimateScript.idle.Animation1.AnimationId = PreviousIdle1
+				AnimateScript.idle.Animation2.AnimationId = PreviousIdle2
+				PlayerCharacter:SetAttribute("CanShoot", true)
+
+				for _, Track in pairs(PlayerCharacter.Humanoid.Animator:GetPlayingAnimationTracks()) do
+					Track:Stop()
+				end
+				-- Reset
+				task.delay(60, function()
+					PlayerCharacter:SetAttribute("UltimateCooldown", false)
+				end)
+			end)
+
 			local SFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("GomuGomuNoMi"):WaitForChild("SecondGear"):Clone()
 			SFX.Parent = PlayerCharacter
 			SFX:Play()
@@ -701,8 +727,8 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			AnimationTrack:AdjustSpeed(1)
 
 			task.wait(AnimationTrack.Length)
-			PlayerCharacter.Humanoid.JumpHeight = 16
-			PlayerCharacter.Humanoid.WalkSpeed = 7.2
+			PlayerCharacter.Humanoid.JumpHeight = 7.2
+			PlayerCharacter.Humanoid.WalkSpeed = 16
 			
 
 			-- Main Code
@@ -1123,65 +1149,77 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 
 				local CharactersOnDebounce = {}
 
-				local Hitbox = workspace:GetPartBoundsInBox(PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8), Vector3.new(7, 10, 7), Params)
-				for _, Hit in ipairs(Hitbox) do
-					local HitParent = Hit.Parent
-					if HitParent:GetAttribute("Loading") == true then return end
-					if HitParent and HitParent:FindFirstChild("Humanoid") and not table.find(CharactersOnDebounce, HitParent.Name) and not HitParent:FindFirstChild("Ultimate") then
-						-- Spawn VFX
-						SpawnVFXEvent:FireAllClients(WeaponsFolder:WaitForChild("Throwable"):WaitForChild("Banana"):WaitForChild("Handle"), HitParent.HumanoidRootPart.Position, Player)
-						-- Main
-						HitParent:FindFirstChild("Humanoid").Health -= 20
-						KnockBack(HitParent, HitParent.HumanoidRootPart.CFrame.LookVector * -650)
-						HitParent.Humanoid.WalkSpeed = 6
-						HitParent:SetAttribute("SlideDebounce", true)
-						task.delay(1, function()
-							HitParent.Humanoid.WalkSpeed = 16
-							task.delay(0.6, function()
-								HitParent:SetAttribute("SlideDebounce", false)
+				for i = 1, 33, 1 do
+					local HitboxPart = Instance.new("Part")
+					HitboxPart.Anchored = true
+					HitboxPart.CanCollide = false
+					HitboxPart.Transparency = 0.5
+					HitboxPart.CFrame = PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8)
+					HitboxPart.Size = Vector3.new(7, 10, 7)
+					HitboxPart.Parent = workspace 
+					Debris:AddItem(HitboxPart, 2)
+
+					task.wait()
+					local Hitbox = workspace:GetPartBoundsInBox(PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8), Vector3.new(7, 10, 7), Params)
+					for _, Hit in ipairs(Hitbox) do
+						local HitParent = Hit.Parent
+						if HitParent:GetAttribute("Loading") == true then return end
+						if HitParent and HitParent:FindFirstChild("Humanoid") and not table.find(CharactersOnDebounce, HitParent.Name) and not HitParent:FindFirstChild("Ultimate") then
+							-- Spawn VFX
+							SpawnVFXEvent:FireAllClients(WeaponsFolder:WaitForChild("Throwable"):WaitForChild("Banana"):WaitForChild("Handle"), HitParent.HumanoidRootPart.Position, Player)
+							-- Main
+							HitParent:FindFirstChild("Humanoid").Health -= 20
+							KnockBack(HitParent, HitParent.HumanoidRootPart.CFrame.LookVector * -650)
+							HitParent.Humanoid.WalkSpeed = 6
+							HitParent:SetAttribute("SlideDebounce", true)
+							task.delay(1, function()
+								HitParent.Humanoid.WalkSpeed = 16
+								task.delay(0.6, function()
+									HitParent:SetAttribute("SlideDebounce", false)
+								end)
 							end)
-						end)
-						
-						-- Setting atributes
-						local Distance = (PlayerCharacter.HumanoidRootPart.Position - HitParent.HumanoidRootPart.Position).Magnitude
-						HitParent:SetAttribute("Distance", Distance)
-						HitParent:SetAttribute("Killer", Player.Name)
+							
+							-- Setting atributes
+							local Distance = (PlayerCharacter.HumanoidRootPart.Position - HitParent.HumanoidRootPart.Position).Magnitude
+							HitParent:SetAttribute("Distance", Distance)
+							HitParent:SetAttribute("Killer", Player.Name)
 
-						-- Resetting killfeed
-						task.delay(10, function() -- Reset
-							HitParent:SetAttribute("Distance", "")
-							HitParent:SetAttribute("Killer", "")
-						end)
-						
-						table.insert(CharactersOnDebounce, HitParent.Name)
-					else
-						if HitParent:FindFirstChild("Ultimate") then	
-							if HitParent:FindFirstChild("Ultimate"):GetAttribute("Ultimate") == "Apple" then
-								if HitParent:GetAttribute("UltimateHealth") > 0 then
-									HitParent:SetAttribute("UltimateHealth", HitParent:GetAttribute("UltimateHealth") - 25)
-									-- Update ULT Health
-									game:GetService("TweenService"):Create(HitParent:FindFirstChild("Ultimate").ForceAttach.BillboardGui.HealthBackground.HealthInner, TweenInfo.new(0.25), {Size = UDim2.new(HitParent:GetAttribute("UltimateHealth")/250, 0, 1, 0)}):Play()
-									HitParent:FindFirstChild("Ultimate").ForceAttach.BillboardGui.HealthBackground.HealthStatus.Text = HitParent:GetAttribute("UltimateHealth").. "HP"	
-								end
-								table.insert(CharactersOnDebounce, HitParent.Name)
-								coroutine.wrap(function()
-									if HitParent:GetAttribute("UltimateHealth") <= 0 then
-										-- Delays
-										HitParent:WaitForChild("Ultimate"):Destroy()
-
-										-- Reset
-										local Player = game:GetService("Players"):GetPlayerFromCharacter(HitParent)
-										local CooldownText = Player.PlayerGui.Cooldown.Attacks.Ultimate
-										local Cooldown = string.match(CooldownText.Text, "%(.*%)")
-										Cooldown = string.split(Cooldown, "(")
-										Cooldown[2] = string.split(Cooldown[2], ")")
-										Cooldown = Cooldown[2][1]
-										task.delay(Cooldown, function()
-											PlayerCharacter:SetAttribute("UltimateCooldown", false)
-											HitParent:SetAttribute("UltimateHealth", 250)
-										end)
+							-- Resetting killfeed
+							task.delay(10, function() -- Reset
+								HitParent:SetAttribute("Distance", "")
+								HitParent:SetAttribute("Killer", "")
+							end)
+							
+							table.insert(CharactersOnDebounce, HitParent.Name)
+						else
+							if HitParent:FindFirstChild("Ultimate") then	
+								if HitParent:FindFirstChild("Ultimate"):GetAttribute("Ultimate") == "Apple" then
+									if HitParent:GetAttribute("UltimateHealth") > 0 then
+										HitParent:SetAttribute("UltimateHealth", HitParent:GetAttribute("UltimateHealth") - 25)
+										-- Update ULT Health
+										game:GetService("TweenService"):Create(HitParent:FindFirstChild("Ultimate").ForceAttach.BillboardGui.HealthBackground.HealthInner, TweenInfo.new(0.25), {Size = UDim2.new(HitParent:GetAttribute("UltimateHealth")/250, 0, 1, 0)}):Play()
+										HitParent:FindFirstChild("Ultimate").ForceAttach.BillboardGui.HealthBackground.HealthStatus.Text = HitParent:GetAttribute("UltimateHealth").. "HP"	
 									end
-								end)()
+									table.insert(CharactersOnDebounce, HitParent.Name)
+									coroutine.wrap(function()
+										if HitParent:GetAttribute("UltimateHealth") <= 0 then
+											-- Delays
+											HitParent:WaitForChild("Ultimate"):Destroy()
+
+											-- Reset
+											local Player = game:GetService("Players"):GetPlayerFromCharacter(HitParent)
+											local CooldownText = Player.PlayerGui.Cooldown.Attacks.Ultimate
+											local Cooldown = string.match(CooldownText.Text, "%(.*%)")
+											Cooldown = string.split(Cooldown, "(")
+											Cooldown[2] = string.split(Cooldown[2], ")")
+											Cooldown = Cooldown[2][1]
+											task.delay(Cooldown, function()
+												PlayerCharacter:SetAttribute("UltimateCooldown", false)
+												HitParent:SetAttribute("UltimateHealth", 250)
+											end)
+										end
+									end)()
+								end
 							end
 						end
 					end
@@ -1193,6 +1231,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			if PlayerCharacter:GetAttribute("UltimateAttackCooldown") == true then return end
 			if PlayerCharacter:GetAttribute("SlideDebounce") == true then return end
 			PlayerCharacter:SetAttribute("UltimateAttackCooldown", true)
+			PlayerCharacter:SetAttribute("UltimateReleased", true)
 			task.delay(3.5, function()
 				PlayerCharacter:SetAttribute("UltimateAttackCooldown", false)
 			end)
@@ -1224,11 +1263,10 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 				weld.C0 = weld.Part0.CFrame:ToObjectSpace(weld.Part1.CFrame)
 				weld.Parent = weld.Part0
 
-				for _, PlayingAnims in ipairs(PlayerCharacter.Humanoid.Animator:GetPlayingAnimationTracks()) do
-					PlayingAnims:Stop()
-				end
+				local PlayerIsInHold = false
 
-				ActionAnim:Play()			
+				ActionAnim:Play()
+
 				ActionAnim:GetMarkerReachedSignal("Hold"):Connect(function()
 					ActionAnim:AdjustSpeed(0)
 				end)
@@ -1237,12 +1275,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 				ActionAnim:AdjustSpeed(1)
 
 				ActionAnim:GetMarkerReachedSignal("Release"):Connect(function()
-					if ActionAnim.Speed ~= 0 then
-						repeat
-							task.wait()
-							ActionAnim:AdjustSpeed(0)
-						until   ActionAnim.Speed == 0
-					end
+					ActionAnim:AdjustSpeed(0)
 
 					local PistolInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true, 0)
 					local ArmSpeed = Vector3.new(0,0,10)
@@ -1275,6 +1308,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 					PlayerCharacter.Humanoid.WalkSpeed = 16
 					PlayerCharacter.Humanoid.JumpHeight = 7.2
 					partStretch:Destroy()
+					PlayerCharacter:SetAttribute("UltimateReleased", true)
 				end)
 				-- Hitbox
 				local Overlap_Params = OverlapParams.new()
@@ -1359,7 +1393,6 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 							Debris:AddItem(Circle, 3.5)
 						end
 					end)
-
 					task.wait(1.5)
 					SFX:Destroy()
 					local PistolInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -1409,10 +1442,9 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 								HitParent.Humanoid.WalkSpeed = 16
 								task.delay(0.5, function()
 									HitParent:SetAttribute("SlideDebounce", false)
-								end)
-								
+								end)	
 							end)
-							
+								
 							-- Setting atributes
 							local Distance = (PlayerCharacter.HumanoidRootPart.Position - HitParent.HumanoidRootPart.Position).Magnitude
 							HitParent:SetAttribute("Distance", Distance)
@@ -1423,7 +1455,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 								HitParent:SetAttribute("Distance", "")
 								HitParent:SetAttribute("Killer", "")
 							end)
-							
+								
 							table.insert(CharactersOnDebounce, HitParent.Name)
 						else
 							if HitParent:FindFirstChild("Ultimate") then	
@@ -1457,23 +1489,18 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 							end
 						end
 					end
-
 					-- RESET
 					task.delay(0.6, function()
 						PlayerCharacter.Humanoid.WalkSpeed = 16
 						PlayerCharacter.Humanoid.JumpHeight = 7.2
 						partStretch:Destroy()
+						PlayerCharacter:SetAttribute("UltimateReleased", false)
 						task.delay(1.2, function()
 							SFX:Destroy()
 							SFX2:Destroy()
 						end)
 					end)
 				end)
-				-- Hitbox
-				local Overlap_Params = OverlapParams.new()
-				Overlap_Params.FilterType = Enum.RaycastFilterType.Blacklist
-				Overlap_Params.FilterDescendantsInstances = {PlayerCharacter, partStretch}
-
 			end	
 			
 		elseif self.Name == "Banana" then
@@ -1725,7 +1752,7 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 			SpawnVFXEvent:FireAllClients(Weapon, Result.Position, Player)
 		end)
 
-	elseif workspace:GetAttribute("Event") == "All Shotgun" then
+	else
 		-- Instances
 		local PlayerCharacter = workspace:FindFirstChild(Player.Name)
 		if PlayerCharacter:GetAttribute("Cooldown") == true then return end
@@ -1798,6 +1825,7 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 				-- Add & Reset debounce
 				table.insert(CharactersOnDebounce, Character.Name)
 				if Character:FindFirstChild("Ultimate") then
+					if Character:FindFirstChild("Ultimate"):GetAttribute("Ultimate") == "GomuGomuNoMi" and Character:GetAttribute("UltimateReleased") == true then return end
 					if Character:FindFirstChild("Ultimate"):GetAttribute("Ultimate") ~= "Apple" then
 						Character.Humanoid:TakeDamage(self.Damage)
 						KnockBack(Character, Velocity)
@@ -1889,7 +1917,9 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 			SpawnVFXEvent:FireAllClients(Weapon, Result.Position, Player)
 		end)
 		-- Instances
-	else
+		-- This is the code used from before used to make guns shoot only one shot.
+		-- It is now deprecated and all fruit shoot multiple fruit
+--[[
 		local PlayerCharacter = workspace:FindFirstChild(Player.Name)
 		if PlayerCharacter:GetAttribute("Cooldown") == true then return end
 		if PlayerCharacter:GetAttribute("Ragdolled") == true then return end
@@ -2047,9 +2077,9 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 		task.delay(0.5, function()
 			if bulletsFolder:FindFirstChild(Player.Name) then
 				bulletsFolder:FindFirstChild(Player.Name):Destroy()
-			end
-		end)
-	end
+			end 
+		end) --]]
+	end 
 end
 
 return Weapons

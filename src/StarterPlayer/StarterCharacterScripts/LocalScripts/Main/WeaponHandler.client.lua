@@ -167,6 +167,7 @@ Character:GetAttributeChangedSignal("InUltimate"):Connect(function()
 	if Character:GetAttribute("InUltimate") == false then
 		ContextActionService:UnbindAction("Attack")
 		ContextActionService:UnbindAction("Detonate")
+		ContextActionService:UnbindAction("SecondAttack")
 	end
 end)
 
@@ -228,35 +229,6 @@ CheckServerValue.OnClientEvent:Connect(function()
 	local Params = RaycastParams.new()
 	Params.FilterType = Enum.RaycastFilterType.Blacklist
 	Params.FilterDescendantsInstances = {Character}
-	task.spawn(function()
-		while Dashing == true do
-			local HinderDetection = workspace:Raycast(Character.HumanoidRootPart.Position, (Character.HumanoidRootPart.CFrame.LookVector).Unit * 5, Params)
-			if HinderDetection then
-				Humanoid.AutoRotate = false
-				task.delay(0.1, function()
-					Humanoid.AutoRotate = true
-				end)
-				if workspace:GetAttribute("Event") == "Tiny Royale" then
-					if IsGrounded(Character.HumanoidRootPart.RootAttachment, {Character}) then
-						print("Is grounded")
-						Character.HumanoidRootPart:ApplyImpulse((Character.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit * -3.5)
-					else
-						print("Is not grounded")
-						Character.HumanoidRootPart:ApplyImpulse((Character.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit * -2.5)
-					end
-				else
-					if IsGrounded(Character.HumanoidRootPart.RootAttachment, {Character}) then
-						print("Is grounded")
-						Character.HumanoidRootPart:ApplyImpulse((Character.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit * -1000)
-					else
-						print("Is not grounded")
-						Character.HumanoidRootPart:ApplyImpulse((Character.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 0, 1)).Unit * -500)
-					end
-				end
-			end
-			task.wait()
-		end
-	end)
 
 	if workspace:GetAttribute("Event") == "Tiny Royale" then
 		if IsGrounded(Character.HumanoidRootPart.RootAttachment, {Character}) then

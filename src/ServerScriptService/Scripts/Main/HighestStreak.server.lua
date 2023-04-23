@@ -1,6 +1,9 @@
 --|| Services ||--
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+--|| Modules ||--
+local Datastore2 = require(script.Parent.Parent.Main.DataHandler.DataStore2)
+
 --|| Instances ||--
 local Events = ReplicatedStorage:WaitForChild("Events")
 
@@ -62,17 +65,20 @@ task.spawn(function()
 						UltimateStreak.Parent = Character.Head
 					end
 				end
-				task.spawn(function()
-					repeat
-						Character.Humanoid.JumpHeight = 15
-						Character.Humanoid.WalkSpeed = 25
-						task.wait()
-					until Player.Name ~= workspace:GetAttribute("HighestStreak") or Character.Humanoid:GetState() == Enum.HumanoidStateType.Dead
-					workspace:SetAttribute("PreviousHighestStreak", Player.Name)
+				
+				repeat
+					local MoneyStore = Datastore2("Money", Player)
+					MoneyStore:Increment(10)
+					task.wait(5)
+				until Player.Name ~= workspace:GetAttribute("HighestStreak") or Character.Humanoid:GetState() == Enum.HumanoidStateType.Dead
+				
+				workspace:SetAttribute("PreviousHighestStreak", Player.Name)
+				
+				if Character.Head then
 					if Character.Head:FindFirstChild("HighestStreakGUI") then
 						Character.Head:FindFirstChild("HighestStreakGUI"):Destroy()
-					end
-				end)
+					end	
+				end
 			end
 		end
 	end
