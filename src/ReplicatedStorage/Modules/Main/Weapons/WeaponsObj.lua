@@ -469,6 +469,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			end)
 
 			ActionAnimationTrack:GetMarkerReachedSignal("Bolt"):Connect(function()
+				Lemon:Destroy()
 				CameraHandler:FireAllClients()
 
 				local SFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Lemon"):WaitForChild("Lightning Bolt"):Clone()
@@ -501,7 +502,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 								clone:ClearAllChildren()
 								clone.Anchored = true
 								clone.CanCollide = false
-								clone.Parent = workspace:WaitForChild("Fx")
+								clone.Parent = workspace.Map.DeadZone.Fx
 								clone.Color = Color3.fromRGB(0, 0, 0)
 								clone.Material = Enum.Material.Neon
 								clone.Transparency = 0.5
@@ -533,6 +534,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 					PlayerCharacter.Humanoid.WalkSpeed = 16
 				end)
 			end)
+			PlayerCharacter:SetAttribute("CanShoot", true)
 			local CharactersOnDebounce = {}
 			local Connection: RBXScriptConnection
 			for _, Child in ipairs(PlayerCharacter:GetChildren()) do
@@ -1623,7 +1625,7 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 		if PlayerCharacter:GetAttribute("Loading") == true then return end
 		PlayerCharacter:SetAttribute("CooldownTime", self.CooldownTime)
 		PlayerCharacter:SetAttribute("Cooldown", true)
-		PlayerCharacter:FindFirstChild(self.Name).Handle.Transparency = 1
+		-- PlayerCharacter:FindFirstChild(self.Name):WaitForChild("Handle").Transparency = 1
 
 		-- Removing cooldown
 		task.delay(PlayerCharacter:GetAttribute("CooldownTime"), function()
@@ -1789,7 +1791,7 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 		if PlayerCharacter:GetAttribute("Loading") == true then return end
 		PlayerCharacter:SetAttribute("CooldownTime", self.CooldownTime)
 		PlayerCharacter:SetAttribute("Cooldown", true)
-		PlayerCharacter:FindFirstChild(self.Name).Handle.Transparency = 1
+		-- PlayerCharacter:FindFirstChild(self.Name).Handle.Transparency = 1
 
 		-- Removing cooldown
 		task.delay(PlayerCharacter:GetAttribute("CooldownTime"), function()
