@@ -534,6 +534,11 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 					PlayerCharacter.Humanoid.WalkSpeed = 16
 				end)
 			end)
+
+			local Params = OverlapParams.new()
+			Params.FilterType = Enum.RaycastFilterType.Exclude
+			Params.FilterDescendantsInstances = {PlayerCharacter}
+
 			PlayerCharacter:SetAttribute("CanShoot", true)
 			local CharactersOnDebounce = {}
 			local Connection: RBXScriptConnection
@@ -1181,15 +1186,6 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 				local CharactersOnDebounce = {}
 
 				for i = 1, 33, 1 do
-					local HitboxPart = Instance.new("Part")
-					HitboxPart.Anchored = true
-					HitboxPart.CanCollide = false
-					HitboxPart.Transparency = 0.5
-					HitboxPart.CFrame = PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8)
-					HitboxPart.Size = Vector3.new(7, 10, 7)
-					HitboxPart.Parent = workspace 
-					Debris:AddItem(HitboxPart, 2)
-
 					task.wait()
 					local Hitbox = workspace:GetPartBoundsInBox(PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8), Vector3.new(7, 10, 7), Params)
 					for _, Hit in ipairs(Hitbox) do
@@ -1430,7 +1426,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 					local PistolTweenSize = game:GetService("TweenService"):Create(partStretch, PistolInfo, {Size = partStretch.Size + Vector3.new(0,-50,0)})
 					PistolTweenSize:Play()
 					local TweenPos = game:GetService("TweenService"):Create(weld, PistolInfo, {C0 = CFrame.new(0, 0, 0)}):Play()
-					task.wait(0.1)
+					task.wait(0.15)
 					ActionAnim:AdjustSpeed(1)
 					-- Camera shake
 					task.spawn(function()

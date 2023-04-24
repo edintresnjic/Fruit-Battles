@@ -323,8 +323,6 @@ local function CharacterAdded(Character)
 		task.delay(tonumber(Cooldown), function()
 			Character:SetAttribute("UltimateCooldown", false)
 		end)
-	else
-		Character:SetAttribute("UltimateCooldown", false)
 	end
 
 	local SpawnPoints = workspace:WaitForChild("Map"):WaitForChild("SpawnPoints"):GetChildren()
@@ -577,6 +575,7 @@ Shop.OnServerInvoke = function(Player, Type, Weapon)
 		-- Returning if player already has weapon equipped
 		if Player.Character and Player.Character:GetAttribute("Killer") ~= "" then return end
 		if Player.Character and Player.Character:GetAttribute("Ragolled") == true then return end
+		if Player.Character and Player.Character:GetAttribute("InUltimate") == true then return end
 		if Player.Character.Humanoid and Player.Character.Humanoid:GetState() == Enum.HumanoidStateType.Dead then return end
 		if Player.ValuesFolder.Weapons.Value == Weapon then 
 			return 
@@ -596,6 +595,21 @@ Shop.OnServerInvoke = function(Player, Type, Weapon)
 				local Character = Player.Character or Player.CharacterAdded:Wait()
 				Character:SetAttribute("Weapon", Weapon)
 				GetWeapon(Player)
+				local HasDied = Instance.new("BoolValue")
+				HasDied.Name = "IsUlted"
+				HasDied.Parent = Player
+
+				local CooldownText = Player.PlayerGui.Cooldown.Attacks.Ultimate
+				local Cooldown = string.match(CooldownText.Text, "%(.*%)")
+				if not Cooldown then return end
+				Cooldown = string.split(Cooldown, "(")
+				Cooldown[2] = string.split(Cooldown[2], ")")
+				Cooldown = Cooldown[2][1]
+				task.delay(tonumber(Cooldown), function()
+					Character:SetAttribute("UltimateCooldown", false)
+					HasDied:Destroy()
+				end)
+
 				Player:LoadCharacter()
 				-- Returning
 				return "Equip"
@@ -698,8 +712,9 @@ local function PlayerAdded(Player)
 	
 	local function UpdateLevel(UpdatedLevel)
 		Level.Value = UpdatedLevel
-		local LevelText = Player.PlayerGui.Menu.MainFrame.Title.Level.Level
+		local LevelText = Player:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("LevelText")
 		LevelText.Text = "LEVEL: ".. Level.Value
+		LevelText.Visible = true
 	end
 	
 	local XP = Instance.new("IntValue", valuesfldr)
@@ -725,19 +740,13 @@ local function PlayerAdded(Player)
 			-- VFX
 			PlayLevelUpVFX(Player)
 		end
-		local XPText = Player.PlayerGui.Menu.MainFrame.Title.Level.XP
+		local XPText = Player:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("XPText")
 		XPText.Text = XP.Value.. "/"..(math.pow(Level, 3) * 10).. " XP"
-	end
-	
-	
-	if table.find(Friends, Player.Name) then
-		MoneyStore:Set(1000000000)
-		LevelStore:Set(50)
+		XPText.Visible = true
 	end
 	
 	if RunService:IsStudio() then
 		for _, Player in ipairs(game.Players:GetPlayers()) do
-			local moneyStore = DataStore2("Money", Player)
 			MoneyStore:Set(1000000000)
 			LevelStore:Set(50)
 		end

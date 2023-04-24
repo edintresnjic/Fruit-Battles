@@ -9,7 +9,7 @@ return {
 		Value = false
 	},
 	["UltimateCooldown"] = {
-		Value = true
+		Value = false
 	},
 	["InUltimate"] = {
 		Value = false

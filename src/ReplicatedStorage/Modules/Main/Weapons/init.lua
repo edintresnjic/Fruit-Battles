@@ -1,6 +1,7 @@
 local Weapon = require(script:WaitForChild("WeaponsObj"))
 
 local WeaponsStorage = {
+	--                 WeaponName Cost Damage Type      Speed CD  LVL
 	Apple = Weapon.new("Apple", "Free", 15, "Throwable", 500, 1.5, 1),
 	Banana = Weapon.new("Banana", 300, 20, "Throwable", 500, 1.5, 3),
 	Watermelon = Weapon.new("Watermelon", 600, 30, "Throwable", 400, 2, 5),
