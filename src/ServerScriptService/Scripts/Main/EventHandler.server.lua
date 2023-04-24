@@ -50,7 +50,7 @@ local function UpdateBasedOnEvent(Player)
 		Humanoid:WaitForChild("BodyHeightScale").Value = 1
 		Humanoid:WaitForChild("HeadScale").Value = 1
 		-- Cooldown
-		local CooldownText = Player.PlayerGui.Cooldown.Attacks.Ultimate
+		local CooldownText = Player:WaitForChild("PlayerGui"):WaitForChild("Cooldown"):WaitForChild("Attacks"):WaitForChild("Ultimate")
 		local Cooldown = string.match(CooldownText.Text, "%(.*%)")
 
 		if not Cooldown then 
