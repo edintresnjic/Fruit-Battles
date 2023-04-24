@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
 local ServerScriptService = game:GetService("ServerScriptService")
+local ServerStorage = game:GetService("ServerStorage")
+local TweenService = game:GetService("TweenService")
 
 --|| Instances ||--
 -- OOP
@@ -404,7 +406,8 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			end
 		elseif self.Name == "Lemon" then
 			-- Setting
-			PlayerCharacter.Humanoid.JumpHeight = 15
+			PlayerCharacter.Humanoid.JumpHeight = 0
+			PlayerCharacter.Humanoid.WalkSpeed = 0
 			-- Instances
 			local Decoy = Instance.new("BoolValue")
 			Decoy.Name = "Ultimate"
@@ -469,109 +472,40 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 				EatSFX.Parent = PlayerCharacter
 				EatSFX:Play()
 			end)
-			
-			ActionAnimationTrack:GetMarkerReachedSignal("Action"):Connect(function()
-				local CharactersOnDebounce = {}
-				local ActionSFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Lemon"):WaitForChild("Action"):Clone()
-				EatSFX:Destroy()
-				ActionSFX.Parent = PlayerCharacter
-				ActionSFX.Looped = true
-				ActionSFX:Play()
-				
-				ActionAnimationTrack:AdjustSpeed(0)
-				local VFX = PlayerCharacter.Head:FindFirstChild("VFX") or ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Ultimates"):WaitForChild("Lemon"):WaitForChild("VFX"):WaitForChild("Attachment"):Clone()
-				VFX.Parent = PlayerCharacter.Head
-				VFX.Name = "VFX"
-				task.spawn(function()
-					repeat
-						-- Play VFX
-						-- Hitbox
-						local Params = OverlapParams.new()
-						Params.FilterType = Enum.RaycastFilterType.Blacklist
-						Params.FilterDescendantsInstances = {PlayerCharacter}
-						-- Visualizing hitbox
-						--[[
-						local HitboxPart = Instance.new("Part")
-						HitboxPart.Anchored = true
-						HitboxPart.CanCollide = false
-						HitboxPart.Transparency = 0.5
-						HitboxPart.CFrame = PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -6)
-						HitboxPart.Size = Vector3.new(10, 6, 12)
-						HitboxPart.Parent = workspace
-						Debris:AddItem(HitboxPart, 2) ]]--
 
-						local Hitbox = workspace:GetPartBoundsInBox(PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8), Vector3.new(13, 6, 21), Params)
-						for Index, Hit in pairs(Hitbox) do
-							local HitParent = Hit.Parent
-							if HitParent:GetAttribute("Loading") == true then return end
-							if HitParent and HitParent:FindFirstChild("Humanoid") and not table.find(CharactersOnDebounce, HitParent.Name) and not HitParent:FindFirstChild("Ultimate") then
-								-- Main
-								local HitAnim: AnimationTrack = HitParent:FindFirstChild("Humanoid").Animator:LoadAnimation(ReplicatedStorage:WaitForChild("Animations"):WaitForChild("Lemon"):WaitForChild("Hit"))
-								HitAnim:Play()
-								local Sound: Sound = HitParent:FindFirstChild("HitSound") or ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Lemon"):WaitForChild("Hit"):Clone()
-								Sound.Parent = HitParent
-								Sound.Name = "HitSound"
-								Sound:Play()
-								
-								HitParent:FindFirstChild("Humanoid").Health -= 2
-								HitParent.Humanoid.WalkSpeed = 8
-								task.delay(1, function()
-									HitParent.Humanoid.WalkSpeed = 16
-								end)
+			ActionAnimationTrack:GetMarkerReachedSignal("Bolt"):Connect(function()
+				CameraHandler:FireAllClients()
 
-								-- Setting atributes
-								local Distance = (PlayerCharacter.HumanoidRootPart.Position - HitParent.HumanoidRootPart.Position).Magnitude
-								HitParent:SetAttribute("Distance", Distance)
-								HitParent:SetAttribute("Killer", Player.Name)
+				local Lightning = ServerStorage:WaitForChild("Ultimates"):WaitForChild("Lemon"):WaitForChild("Lightning"):Clone()
+				Lightning.Position = PlayerCharacter.HumanoidRootPart.Position + Vector3.new(0, 100, 0)
+				Lightning.Part2.Position = PlayerCharacter.HumanoidRootPart.Position
+				Lightning.Parent = workspace.Terrain
 
-								-- Resetting killfeed
-								task.delay(10, function() -- Reset
-									HitParent:SetAttribute("Distance", "")
-									HitParent:SetAttribute("Killer", "")
-								end)
-
-								table.insert(CharactersOnDebounce, HitParent.Name)
-								task.delay(0.2, function()
-									table.remove(CharactersOnDebounce, table.find(CharactersOnDebounce, HitParent.Name))
-								end)
-							else
-								if HitParent:FindFirstChild("Ultimate") then	
-									if HitParent:FindFirstChild("Ultimate"):GetAttribute("Ultimate") == "Apple" then
-										if HitParent:GetAttribute("UltimateHealth") > 0 then
-											HitParent:SetAttribute("UltimateHealth", HitParent:GetAttribute("UltimateHealth") - self.Damage)
-											-- Update ULT Health
-											game:GetService("TweenService"):Create(HitParent:FindFirstChild("Ultimate").ForceAttach.BillboardGui.HealthBackground.HealthInner, TweenInfo.new(0.25), {Size = UDim2.new(HitParent:GetAttribute("UltimateHealth")/250, 0, 1, 0)}):Play()
-											HitParent:FindFirstChild("Ultimate").ForceAttach.BillboardGui.HealthBackground.HealthStatus.Text = HitParent:GetAttribute("UltimateHealth").. "HP"	
-										end
-										table.insert(CharactersOnDebounce, HitParent.Name)
-										coroutine.wrap(function()
-											if HitParent:GetAttribute("UltimateHealth") <= 0 then
-												-- Delays
-												HitParent:WaitForChild("Ultimate"):Destroy()
-
-												-- Reset
-												local Player = game:GetService("Players"):GetPlayerFromCharacter(HitParent)
-												local CooldownText = Player.PlayerGui.Cooldown.Attacks.Ultimate
-												local Cooldown = string.match(CooldownText.Text, "%(.*%)")
-												Cooldown = string.split(Cooldown, "(")
-												Cooldown[2] = string.split(Cooldown[2], ")")
-												Cooldown = Cooldown[2][1]
-												task.delay(Cooldown, function()
-													PlayerCharacter:SetAttribute("UltimateCooldown", false)
-													HitParent:SetAttribute("UltimateHealth", 250)
-												end)
-											end
-										end)()
-									end
-								end
-							end
-						end
-						task.wait()
-					until PlayerCharacter:GetAttribute("InUltimate") == false or PlayerCharacter.Humanoid:GetState() == Enum.HumanoidStateType.Dead
-					ActionSFX:Destroy()
-					Lemon:Destroy()
-					VFX:Destroy()
+				task.delay(2, function()
+					Lightning:Destroy()
 				end)
+				
+				local SFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Lemon"):WaitForChild("Lightning Bolt"):Clone()
+				SFX.Parent = PlayerCharacter
+				SFX:Play()
+				task.delay(4, function()
+					SFX:Destroy()
+				end)
+			end)
+
+			ActionAnimationTrack:GetMarkerReachedSignal("Punch"):Connect(function()
+				CameraHandler:FireClient(Player)
+
+				local UltimateAuraVFX = ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Electric Aura")
+				for _, Emit in ipairs(UltimateAuraVFX:GetDescendants()) do
+					if Emit:IsA("ParticleEmitter") then
+						local Copy = Emit:Clone()
+						Copy.Parent = PlayerCharacter:FindFirstChild(Emit.Parent.Name)
+					end
+				end
+							-- Setting
+				PlayerCharacter.Humanoid.JumpHeight = 7.2
+				PlayerCharacter.Humanoid.WalkSpeed = 16
 			end)
 			
 		elseif self.Name == "Pumpkin" then

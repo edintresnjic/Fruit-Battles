@@ -22,27 +22,10 @@ workspace:GetAttributeChangedSignal("PlayersInQueue"):Connect(function()
 end)
 
 SpawnVFX.OnClientEvent:Connect(function(Object, Position, Playsound, Type, Player)
+	print("Received")
 	if Type ~= nil then
-		if Type == "AuraAdd" then
-			local Character = Player.Character
-			local UltimateAuraVFX = ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Ultimate Aura")
-			for _, Emit in ipairs(UltimateAuraVFX:GetDescendants()) do
-				if Emit:IsA("ParticleEmitter") then
-					local Copy = Emit:Clone()
-					Copy.Parent = Character:FindFirstChild(Emit.Parent.Name)
-				end
-			end
-			
-		elseif Type == "AuraRemove" then
-			local Character = Player.Character
-			for _, Emitter in ipairs(Character:GetDescendants()) do
-				if Emitter:IsA("ParticleEmitter") then
-					Emitter:Destroy()
-				end
-			end
-			
-		elseif Type == "StreakAdd" then
-			local Character = Player.Character
+		if Type == "StreakAdd" then
+			local Character = Player.Character or Player.CharacterAppearanceLoaded:Wait()
 			local StreakVFX = ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Streak")
 			for _, Emit in ipairs(StreakVFX:GetDescendants()) do
 				if Emit:IsA("ParticleEmitter") then
@@ -52,7 +35,7 @@ SpawnVFX.OnClientEvent:Connect(function(Object, Position, Playsound, Type, Playe
 			end
 			
 		elseif Type == "StreakRemove" then
-			local Character = Player.Character
+			local Character = Player.Character or Player.CharacterAppearanceLoaded:Wait()
 			for _, Emitter in ipairs(Character:GetDescendants()) do
 				if Emitter:IsA("ParticleEmitter") then
 					Emitter:Destroy()

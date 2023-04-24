@@ -350,14 +350,34 @@ local function CharacterAdded(Character)
 	-- Adding aura vfx
 	Character:GetAttributeChangedSignal("UltimateCooldown"):Connect(function()
 		if Character:GetAttribute("UltimateCooldown") == false then
-			-- Spawn aura
-			SpawnVFX:FireAllClients(nil, nil, false, "AuraAdd", Player)
+			local UltimateAuraVFX = ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Ultimate Aura")
+			for _, Emit in ipairs(UltimateAuraVFX:GetDescendants()) do
+				if Emit:IsA("ParticleEmitter") then
+					local Copy = Emit:Clone()
+					Copy.Parent = Character:FindFirstChild(Emit.Parent.Name)
+				end
+			end
 			
 
 		else
 			SpawnVFX:FireAllClients(nil, nil, false, "AuraRemove", Player)
+			for _, Emitter in ipairs(Character:GetDescendants()) do
+				if Emitter:IsA("ParticleEmitter") then
+					Emitter:Destroy()
+				end
+			end
 		end
 	end)
+
+	if Character:GetAttribute("UltimateCooldown") == false then
+		local UltimateAuraVFX = ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Ultimate Aura")
+		for _, Emit in ipairs(UltimateAuraVFX:GetDescendants()) do
+			if Emit:IsA("ParticleEmitter") then
+				local Copy = Emit:Clone()
+				Copy.Parent = Character:FindFirstChild(Emit.Parent.Name)
+			end
+		end
+	end
 
 	-- Kill Feed
 	Humanoid.Died:Connect(function()
@@ -439,10 +459,12 @@ local function CharacterAdded(Character)
 			-- Check if own pass
 			local HasCustomSoundFXPass
 			local TwoTimesMoney
+			local TwoTimesXP
 			
 			local success, message = pcall(function()
 				 HasCustomSoundFXPass = MarketPlaceService:UserOwnsGamePassAsync(KillerPlayer.UserId, GamePassIDs["Custom Kill Sound"])
-				TwoTimesMoney = MarketPlaceService:UserOwnsGamePassAsync(KillerPlayer.UserId, GamePassIDs["2X Money"])
+				 TwoTimesMoney = MarketPlaceService:UserOwnsGamePassAsync(KillerPlayer.UserId, GamePassIDs["2X Money"])
+				 TwoTimesXP = MarketPlaceService:UserOwnsGamePassAsync(KillerPlayer.UserId, GamePassIDs["2X XP"])
 			end)
 			
 			if not success then
@@ -467,14 +489,27 @@ local function CharacterAdded(Character)
 				XPStore:Increment(25)
 				KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">100$ & </font><font color="#3480EB">+25XP</font> | Killed highest streak: '.. Player.Name
 			elseif workspace:GetAttribute("Event") == "Double Money" or TwoTimesMoney then
+				if TwoTimesXP then
+					KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">(2*25)$ & </font><font color="#3480EB">+(2*5XP)</font> | Killed '.. Player.Name
+					XPStore:Increment(10)
+				else
+					KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">(2*25)$ & </font><font color="#3480EB">+5XP</font> | Killed '.. Player.Name
+					XPStore:Increment(5)
+				end
 				KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">(2*25)$ & </font><font color="#3480EB">+5XP</font> | Killed '.. Player.Name
 				MoneyStore:Increment(50)
 				XPStore:Increment(5)
 				KillerCharacter:SetAttribute("Streak", KillerCharacter:GetAttribute("Streak") + 1)
 			else
+				if TwoTimesXP then
+					KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">(2*25)$ & </font><font color="#3480EB">+(2*5XP)</font> | Killed '.. Player.Name
+					XPStore:Increment(10)
+				else
+					KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">(2*25)$ & </font><font color="#3480EB">+5XP</font> | Killed '.. Player.Name
+					XPStore:Increment(5)
+				end
 				KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">25$ & </font><font color="#3480EB">+5XP</font> | Killed '.. Player.Name
 				MoneyStore:Increment(25)
-				XPStore:Increment(5)
 				KillerCharacter:SetAttribute("Streak", KillerCharacter:GetAttribute("Streak") + 1)
 			end
 			KillsStore:Increment(1)
@@ -679,6 +714,15 @@ local function PlayerAdded(Player)
 			local XPLeft = XP.Value - (math.pow(Level, 3) * 10)
 			XPStore:Set(XPLeft)
 			LevelStore:Increment(1)
+			MoneyStore:Increment(150)
+			-- Text
+			local GUI = Player:WaitForChild("PlayerGui"):WaitForChild("Kill")
+			TweenService:Create(GUI:WaitForChild("TextLabel"), TweenInfo.new(0.05, Enum.EasingStyle.Bounce), {Size = UDim2.new(0.163, 0, 0.027, 0)}):Play()
+			GUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">+150$</font> | LEVELED UP'
+			task.delay(2, function()
+				TweenService:Create(GUI:WaitForChild("TextLabel"), TweenInfo.new(0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+			end)
+			-- VFX
 			PlayLevelUpVFX(Player)
 		end
 		local XPText = Player.PlayerGui.Menu.MainFrame.Title.Level.XP
@@ -717,8 +761,8 @@ local function PlayerAdded(Player)
 		Player.Character:SetAttribute("Weapon", Weapons.Value)
 	end
 	
-	CharacterAdded(Player.Character or Player.CharacterAdded:Wait())
-	Player.CharacterAdded:Connect(CharacterAdded)
+	CharacterAdded(Player.Character or Player.CharacterAppearanceLoaded:Wait())
+	Player.CharacterAppearanceLoaded:Connect(CharacterAdded)
 
 	-- Updating & standardizing the datastores
 	UpdateMoney(MoneyStore:Get(0))

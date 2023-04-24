@@ -39,7 +39,8 @@ UpdateLoadingState:FireServer("Add")
 
 local GamePassIDs = {
 	["2X Money"] = 164543945,
-	["Custom Kill Sound"] = 164544847
+	["Custom Kill Sound"] = 164544847,
+	["2X XP"] = 167970838
 }
 
 local Settings = {
@@ -56,7 +57,7 @@ local ShopIcon = Icon.new()
 	:setLabel("Shop")
 	:setImage("rbxassetid://13214107399")
 	:bindEvent("selected", function()
-		TweenService:Create(ShopPopup, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0), {Position = UDim2.new(0.3, 0, 0.5, 0)}):Play()
+		TweenService:Create(ShopPopup, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0), {Position = UDim2.new(0.4, 0, 0.5, 0)}):Play()
 		for _, Item: ImageButton in ipairs(ShopPopup:WaitForChild("Items"):GetChildren()) do
 			Item.MouseButton1Click:Connect(function()
 				PlaySound()
@@ -107,6 +108,8 @@ local ShopIcon = Icon.new()
 					MarketplaceService:PromptGamePassPurchase(game.Players.LocalPlayer, GamePassIDs["Custom Kill Sound"])
 				elseif GamepassFrame.Name == "Gamepass Money" then
 					MarketplaceService:PromptGamePassPurchase(game.Players.LocalPlayer, GamePassIDs["2X Money"])
+				elseif GamepassFrame.Name == "Gamepass XP" then
+					MarketplaceService:PromptGamePassPurchase(game.Players.LocalPlayer, GamePassIDs["2X XP"])
 				end
 			end)
 
