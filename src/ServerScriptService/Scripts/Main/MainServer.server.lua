@@ -438,7 +438,7 @@ local function CharacterAdded(Character)
 			end)
 		end
 
-		if Killer ~= "" then -- Kill Handler
+		if Killer ~= "" and Killer ~= Player.Name then -- Kill Handler
 			-- Streak
 			local KillerCharacter = workspace:FindFirstChild(Killer)
 			local KillerHumanoid = KillerCharacter:FindFirstChild("Humanoid")
@@ -588,6 +588,7 @@ Shop.OnServerInvoke = function(Player, Type, Weapon)
 				local EquippedWeapon = PlayerDataHandler:Get(Player, "EquippedWeapon")
 				PlayerDataHandler:Update(Player, "EquippedWeapon", function(currentWeaponEquipped)
 					currentWeaponEquipped = Weapon
+					Player:LoadCharacter()
 					return currentWeaponEquipped
 				end)
 

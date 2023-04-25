@@ -1064,6 +1064,18 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 				local Players = GetNearbyPlayers(Bullet, 75)
 				for _, Player in ipairs(Players) do
 					CameraHandler:FireClient(Player)
+					Player.Character.Humanoid.Health -= 50
+					KnockBack(Player.Character, Player.Character.HumanoidRootPart.CFrame.LookVector * -10)
+					-- Setting atributes
+					local Distance = (PlayerCharacter.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
+					Player.Character:SetAttribute("Distance", Distance)
+					Player.Character:SetAttribute("Killer", Player.Name)
+						
+					-- Resetting killfeed
+					task.delay(10, function() -- Reset
+						Player.Character:SetAttribute("Distance", "")
+						Player.Character:SetAttribute("Killer", "")
+					end)
 				end
 			end)
 
@@ -1385,6 +1397,17 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 
 							if hitPartsParent and hitPartsParent:FindFirstChild("Humanoid") and not table.find(charactersOnDebounce, hitPartsParent.Name) then
 								hitPartsParent:FindFirstChild("Humanoid"):TakeDamage(20)
+															-- Setting atributes
+								local Distance = (PlayerCharacter.HumanoidRootPart.Position - hitPartsParent.HumanoidRootPart.Position).Magnitude
+								hitPartsParent:SetAttribute("Distance", Distance)
+								hitPartsParent:SetAttribute("Killer", Player.Name)
+		
+								-- Resetting killfeed
+								task.delay(10, function() -- Reset
+									hitPartsParent:SetAttribute("Distance", "")
+									hitPartsParent:SetAttribute("Killer", "")
+								end)
+								
 								KnockBack(hitPartsParent, ((PlayerCharacter.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 3, 1)).Unit * 700))
 								table.insert(charactersOnDebounce, hitPartsParent.Name)
 							end
