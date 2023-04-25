@@ -305,6 +305,12 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			PlayerCharacter:SetAttribute("CanShoot", false)
 			PlayerCharacter:SetAttribute("SlideDebounce", true)
 			PlayerCharacter.Humanoid:UnequipTools()
+
+			local Ultimate = Instance.new("StringValue")
+			Ultimate.Name = "Ultimate"
+			Ultimate:SetAttribute("Ultimate", "GomuGomuNoMi")
+			Ultimate.Parent = PlayerCharacter
+
 			local AnimateScript = PlayerCharacter:WaitForChild("Animate")
 			local PreviousIdle1 = AnimateScript.idle.Animation1.AnimationId
 			local PreviousIdle2 = AnimateScript.idle.Animation2.AnimationId
@@ -336,6 +342,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			-- Delays
 			task.delay(30, function()
 				WatermelonRocket:Destroy()
+				Ultimate:Destroy()
 				PlayerCharacter:SetAttribute("InUltimate", false)
 				AnimateScript.idle.Animation1.AnimationId = PreviousIdle1
 				AnimateScript.idle.Animation2.AnimationId = PreviousIdle2
