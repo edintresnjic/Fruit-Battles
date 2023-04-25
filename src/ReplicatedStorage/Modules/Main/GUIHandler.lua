@@ -149,12 +149,4 @@ function Gui:Shop(Player: Player)
 	print("Everything visisble")
 end
 
-function Gui:HighestStreak(Player: Player)
-	local HighestStreakText = Player:WaitForChild("PlayerGui"):WaitForChild("Main"):WaitForChild("HighestStreak"):WaitForChild("TextLabel")
-	TweenService:Create(HighestStreakText, TweenInfo.new(0.3), {Position = UDim2.new(0.5, 0, 0.1, 0)}):Play()
-	task.delay(1, function()
-		TweenService:Create(HighestStreakText, TweenInfo.new(0.3), {Position = UDim2.new(0.5, 0, -1.5, 0)}):Play()
-	end)
-end
-
 return Gui

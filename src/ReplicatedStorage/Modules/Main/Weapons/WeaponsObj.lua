@@ -337,6 +337,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 					task.wait()
 					PlayerCharacter.Humanoid.WalkSpeed = 8
 				until PlayerCharacter:GetAttribute("InUltimate") == false or PlayerCharacter.Humanoid:GetState() == Enum.HumanoidStateType.Dead
+				PlayerCharacter.Humanoid.WalkSpeed = 16
 			end)
 
 			-- Delays
@@ -499,6 +500,9 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			for _, Child in ipairs(PlayerCharacter:GetChildren()) do
 				if Child:IsA("BasePart") or Child:IsA("MeshPart") then
 					Connection = Child.Touched:Connect(function(HitPart)
+						if PlayerCharacter:GetAttribute("InUltimate") == true then
+							Connection:Disconnect()
+						end
 						local Hitbox = workspace:GetPartBoundsInBox(PlayerCharacter.HumanoidRootPart.CFrame * CFrame.new(0, 0, -8), Vector3.new(7, 10, 7), Params)
 						for _, HitParts in Hitbox do
 							local HitParent = HitParts.Parent

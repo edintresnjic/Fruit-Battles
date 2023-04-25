@@ -292,7 +292,7 @@ local function CharacterAdded(Character)
 			end
 		until FoundSpot == true
 	end)
-	
+
 	local Player = Players:GetPlayerFromCharacter(Character)
 	if Player:GetAttribute("HasDied") and Player:GetAttribute("HasDied") == true then
 		Player:SetAttribute("HasDied", false)
@@ -479,12 +479,7 @@ local function CharacterAdded(Character)
 				end
 			end
 			
-			if Player.Name == workspace:GetAttribute("HighestStreak") then
-				KillerCharacter:SetAttribute("Streak", KillerCharacter:GetAttribute("Streak") + Streak)
-				MoneyStore:Increment(100)
-				XPStore:Increment(25)
-				KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">100$ & </font><font color="#3480EB">+25XP</font> | Killed highest streak: '.. Player.Name
-			elseif workspace:GetAttribute("Event") == "Double Money" or TwoTimesMoney then
+			if workspace:GetAttribute("Event") == "Double Money" or TwoTimesMoney then
 				if TwoTimesXP then
 					KillerGUI:WaitForChild("TextLabel").Text = '<font color="#FCF003">(2*25)$ & </font><font color="#3480EB">+(2*5XP)</font> | Killed '.. Player.Name
 					XPStore:Increment(10)
