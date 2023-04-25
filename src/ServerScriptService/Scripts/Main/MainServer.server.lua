@@ -647,9 +647,9 @@ local function PlayLevelUpVFX(Player)
 		CameraHandler:FireClient(Player)
 		VFX:FindFirstChild("Level Up"):Play()
 		
-		TweenService:Create(Player.PlayerGui.Main.Level.TextLabel, TweenInfo.new(0.4), {Position = UDim2.new(0.5, 0, 0.09, 0)}):Play()
+		TweenService:Create(Player.PlayerGui.Main.LevelText, TweenInfo.new(0.4), {Position = UDim2.new(0.5, 0, 0.09, 0)}):Play()
 		task.delay(1.5, function()
-			TweenService:Create(Player.PlayerGui.Main.Level.TextLabel, TweenInfo.new(0.4), {Position = UDim2.new(0.5, 0, -1, 0)}):Play()
+			TweenService:Create(Player.PlayerGui.Main.LevelText, TweenInfo.new(0.4), {Position = UDim2.new(0.5, 0, -1, 0)}):Play()
 		end)
 		for _, Emitter in ipairs(VFX:GetDescendants()) do
 			if Emitter:IsA("ParticleEmitter") then
@@ -810,7 +810,7 @@ WeaponActivation.OnServerEvent:Connect(function(Player, Type, MousePosition, Fir
 		Weapon:Ultimate(Player, "Begin")
 	elseif Type == "CheckHitbox" then
 		local Weapon, WeaponName = RetrieveWeapon(Player)
-		Weapon:Ultimate(Player, "CheckHitbox", nil, 1)
+		Weapon:Ultimate(Player, "CheckHitbox", MousePosition, 1)
 	elseif Type == "SecondAttackHitbox" then
 		local Weapon, WeaponName = RetrieveWeapon(Player)
 		Weapon:Ultimate(Player, "CheckHitbox", nil, 2)

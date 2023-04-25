@@ -85,6 +85,21 @@ local function KnockBack(HitPlayer, Direction)
 	KnockBackEvent:FireClient(Player, Direction)
 end
 
+local function GetNearbyPlayers(Object: Instance, MaxDist: number)
+	local Position = Object.Position
+	local NearbyPlayers = {}
+	for _, Player in ipairs(game.Players:GetPlayers()) do
+		if not Player.Character then continue end
+		local Character = Player.Character
+		local HumRoot = Character:FindFirstChild("HumanoidRootPart")
+		if (Object.Position - HumRoot.Position ).Magnitude <= MaxDist then
+			table.insert(NearbyPlayers, Player)
+		end
+	end
+	print(NearbyPlayers)
+	return NearbyPlayers
+end
+
 function Weapons:Ultimate(Player, Status, MousePosition, Type)
 	if Status == "Begin" then
 		-- Instances
@@ -288,122 +303,53 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 			-- Main
 			PlayerCharacter:SetAttribute("InUltimate", true)
 			PlayerCharacter:SetAttribute("CanShoot", false)
+			PlayerCharacter:SetAttribute("SlideDebounce", true)
 			PlayerCharacter.Humanoid:UnequipTools()
-			local Comet = UltimatesFolder:WaitForChild("Watermelon"):Clone()
+			local AnimateScript = PlayerCharacter:WaitForChild("Animate")
+			local PreviousIdle1 = AnimateScript.idle.Animation1.AnimationId
+			local PreviousIdle2 = AnimateScript.idle.Animation2.AnimationId
 			
-			-- Reset
-			task.delay(90, function()
-				PlayerCharacter:SetAttribute("UltimateCooldown", false)
-			end)
-			
-			local Anim = PlayerCharacter.Humanoid.Animator:LoadAnimation(ReplicatedStorage:WaitForChild("Animations"):WaitForChild("Watermelon"):WaitForChild("Action"))
-			Anim:Play()
-			UltimatesFolder:WaitForChild("Watermelon"):WaitForChild("SFX"):WaitForChild("Angry"):Play()
-			-- Rocks
-			local RockCache = CustomFloatRocks.Create({
-				CenterCFrame = CFrame.new(PlayerCharacter.HumanoidRootPart.Position),
-				InnerRadius = 20,
-				OuterRadius = 40,
-				Size = {Min = 2, Max = 3}
-			})
-			
-			RockCache.Rise({
-				Velocity = {Min = 3, Max = 5},
-				FloatTime = 8
-			})
-			
-			-- Spawn Comet
-			local GoalDestination = PlayerCharacter.HumanoidRootPart.Position
-			local SpawnPosition = PlayerCharacter.HumanoidRootPart.Position + Vector3.new(0, 300, 0)
+			local IdleAnimation = ReplicatedStorage:WaitForChild("Animations"):WaitForChild("Watermelon"):WaitForChild("Idle")
+			local RunAnimation = ReplicatedStorage:WaitForChild("Animations"):WaitForChild("Watermelon"):WaitForChild("Run")
 
-			Comet.Position = SpawnPosition
-			Comet.Parent = workspace
-			Comet.Anchored = true
-			game:GetService("TweenService"):Create(Comet, TweenInfo.new(1), {Transparency = 0}):Play()
-			
-			task.wait(0.125)
 
-			RockCache.Rise({
-				Velocity = {Min = 3, Max = 5},
-				FloatTime = 8
-			})
+			local WatermelonRocket = UltimatesFolder:WaitForChild("Watermelon Rocket"):Clone()
+			local RightHand = PlayerCharacter.RightHand
 			
-			task.wait(0.125)
-			RockCache.Rise({
-				Velocity = {Min = 3, Max = 5},
-				FloatTime = 8
-			})
-			
-			task.wait(0.125)
-			RockCache.Rise({
-				Velocity = {Min = 3, Max = 5},
-				FloatTime = 8
-			})
-			
-			task.wait(0.70)
-			RockCache.Repulse({
-				VelocityLifetime = .3
-			})
-			
-			-- Main
-			PlayerCharacter:SetAttribute("InUltimate", false)
-			PlayerCharacter:SetAttribute("CanShoot", true)
-			
-			task.delay(2, function()
-				RockCache.Cleanup()
-			end)
-			
-			-- Moving comet to position
-			local Tween: Tween = game:GetService("TweenService"):Create(Comet, TweenInfo.new(0.5), {Position = GoalDestination})
-			Tween:Play()
-			CameraHandler:FireAllClients()
-			
-			task.wait(0.3)
-			
-			-- Check if comet reached position
-			Comet:Destroy()
-			-- Play SFX & VFX
-			-- SpawnVFXEvent:FireAllClients(ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Ultimates"):WaitForChild("Watermelon"):WaitForChild("VFX"), GoalDestination, false)
-			local SFX = UltimatesFolder:WaitForChild("Watermelon"):WaitForChild("SFX"):WaitForChild("Broken Ground"):Play()
-			CameraHandler:FireAllClients()
-			local VFX: Model = ReplicatedStorage:WaitForChild("VFX"):WaitForChild("Ultimates"):WaitForChild("Watermelon"):WaitForChild("VFX"):Clone()
-			VFX:ScaleTo(0.1)
-			VFX.Parent = workspace
-			VFX:PivotTo(CFrame.new(GoalDestination) * CFrame.new(0, 3, 0))
-			SFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Lemon"):WaitForChild("Spin"):Clone()
-			SFX.Parent = VFX
-			SFX.Looped = true
-			SFX:Play()
-			game:GetService("TweenService"):Create(VFX, TweenInfo.new(1), {Size = VFX:ScaleTo(1)}):Play()
-			task.delay(1.5, function()
-				VFX:Destroy()
-			end)
-			-- Hitbox
-			local Hitbox = workspace:GetPartBoundsInRadius(Comet.Position, 40)
-			local CharactersOnDebounce = {}
-			
-			if Hitbox then
-				for _, Hit in pairs(Hitbox) do
-					if Hit.Parent and Hit.Parent:FindFirstChild("Humanoid") then
-						-- Setting Attributes for KillFeed & Resetting afte a while
-						local Distance = (PlayerCharacter.HumanoidRootPart.Position - Hit.Parent.HumanoidRootPart.Position).Magnitude
-						
-						if Hit.Parent ~= PlayerCharacter then
-							Hit.Parent:SetAttribute("Distance", Distance)
-							Hit.Parent:SetAttribute("Killer", Player.Name)
+			local Motor6D = RightHand:FindFirstChild("Watermelon6D") or Instance.new("Motor6D", RightHand)
+			WatermelonRocket.Parent = PlayerCharacter
+			Motor6D.Part0 = RightHand
+			Motor6D.C0 = Motor6D.C0 * CFrame.Angles(0, math.rad(-180), 0)
+			Motor6D.Name = "Watermelon6D"
+			Motor6D.Part1 = WatermelonRocket:FindFirstChild("Handle")
 
-							-- Resetting killfeed
-							task.delay(10, function() -- Reset
-								Hit.Parent:SetAttribute("Distance", "")
-								Hit.Parent:SetAttribute("Killer", "")
-							end)
-						end
-						
-						-- Killing
-						Hit.Parent.Humanoid.Health = 0
-					end
+			AnimateScript.idle.Animation1.AnimationId = IdleAnimation.AnimationId
+			AnimateScript.idle.Animation2.AnimationId = IdleAnimation.AnimationId
+
+			task.spawn(function()
+				repeat
+					task.wait()
+					PlayerCharacter.Humanoid.WalkSpeed = 8
+				until PlayerCharacter:GetAttribute("InUltimate") == false or PlayerCharacter.Humanoid:GetState() == Enum.HumanoidStateType.Dead
+			end)
+
+			-- Delays
+			task.delay(30, function()
+				WatermelonRocket:Destroy()
+				PlayerCharacter:SetAttribute("InUltimate", false)
+				AnimateScript.idle.Animation1.AnimationId = PreviousIdle1
+				AnimateScript.idle.Animation2.AnimationId = PreviousIdle2
+				PlayerCharacter:SetAttribute("CanShoot", true)
+
+				for _, Track in pairs(PlayerCharacter.Humanoid.Animator:GetPlayingAnimationTracks()) do
+					Track:Stop()
 				end
-			end
+				-- Reset
+				task.delay(60, function()
+					PlayerCharacter:SetAttribute("UltimateCooldown", false)
+				end)
+			end)
+
 		elseif self.Name == "Lemon" then
 			-- Setting
 			PlayerCharacter:SetAttribute("CanShoot", false)
@@ -1036,6 +982,84 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 					end
 				end)
 			end)	
+		elseif self.Name == "Watermelon" then
+			local PlayerCharacter = workspace:FindFirstChild(Player.Name)
+			if PlayerCharacter:GetAttribute("Ragdolled") == true then return end
+			if PlayerCharacter:GetAttribute("UltimateAttackCooldown") == true then return end
+			PlayerCharacter:SetAttribute("UltimateAttackCooldown", true)
+			task.delay(5, function()
+				PlayerCharacter:SetAttribute("UltimateAttackCooldown", false)
+			end)
+
+			for _, PlayingAnims in ipairs(PlayerCharacter.Humanoid.Animator:GetPlayingAnimationTracks()) do
+				PlayingAnims:Stop()
+			end
+
+			local ActionAnim = ReplicatedStorage:WaitForChild("Animations"):WaitForChild("Watermelon"):WaitForChild("Action")
+			PlayerCharacter.Humanoid.Animator:LoadAnimation(ActionAnim):Play()
+			CameraHandler:FireClient(Player)
+
+			local Bullet = game:GetService("ServerStorage"):WaitForChild("Head")
+			local WatermelonRocket = PlayerCharacter:FindFirstChild("Watermelon Rocket")
+			-- Casting
+			-- local Direction = (MousePosition - PlayerCharacter.RightHand.Position).Unit -- Gets the vector between firepoint & mousepos and normalizes it
+			castParams.FilterDescendantsInstances = {Bullet, bulletsFolder, Player.Character, WatermelonRocket, workspace:WaitForChild("Map"):FindFirstChild("DeadZone"), workspace:WaitForChild("Map"):WaitForChild("SpawnPoints")}
+			-- Bullet temp
+			local CosmeticWeapon = Bullet:Clone()
+			CosmeticWeapon.Name = Player.Name
+			CastBehavior.CosmeticBulletTemplate = CosmeticWeapon
+			CastBehavior.RaycastParams = castParams
+	
+	
+			local CharactersOnDebounce = {}
+			local Cast = FastCastRedux.new()
+			local function onLengthChanged(Cast, LastPoint, Direction, Length, Velocity, Bullet)
+				if Bullet then
+					local BulletLength = Bullet.Size.Z/2
+					local Offset = CFrame.new(0, 0, -(Length - BulletLength))
+					Bullet.CFrame = CFrame.lookAt(LastPoint, LastPoint + Direction):ToWorldSpace(Offset)
+				else
+					Cast:Terminate()
+				end
+			end
+			local direction = (MousePosition - WatermelonRocket.Head.Position).Unit
+
+			Cast:Fire(PlayerCharacter.RightHand.Position, direction, 600, CastBehavior)
+			local SFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Watermelon"):WaitForChild("Action"):Clone()
+			SFX.Parent = PlayerCharacter
+			SFX:Play()
+			task.delay(2, function()
+				SFX:Destroy()
+			end)
+			Cast.LengthChanged:Connect(onLengthChanged)
+			local Connection: RBXScriptConnection
+
+			PlayerCharacter:FindFirstChild("Watermelon Rocket").Head.Transparency = 1
+			task.delay(0.3, function()
+				PlayerCharacter:FindFirstChild("Watermelon Rocket").Head.Transparency = 0
+			end)
+			Cast.RayHit:Connect(function(Cast, Result, Velocity, Bullet)
+				local SpawnPosition = Bullet.Position
+				local Explosion = Instance.new("Explosion")
+				Explosion.DestroyJointRadiusPercent = 0
+				Explosion.BlastRadius = 15
+				Explosion.ExplosionType = Enum.ExplosionType.Craters
+				Explosion.Position = SpawnPosition
+				Explosion.Parent = Bullet
+
+				local SFX = ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Watermelon"):WaitForChild("Broken Ground"):Clone()
+				SFX.Parent = Bullet
+				SFX:Play()
+				task.delay(1.5, function()
+					Bullet:Destroy()
+				end)
+
+				local Players = GetNearbyPlayers(Bullet, 75)
+				for _, Player in ipairs(Players) do
+					CameraHandler:FireClient(Player)
+				end
+			end)
+
 		elseif self.Name == "Rokakaka" then
 			local PlayerCharacter = workspace:FindFirstChild(Player.Name)
 			if PlayerCharacter:GetAttribute("Ragdolled") == true then return end

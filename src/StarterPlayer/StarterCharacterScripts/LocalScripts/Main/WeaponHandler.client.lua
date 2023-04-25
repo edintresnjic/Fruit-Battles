@@ -1,6 +1,7 @@
 --|| Services ||--
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local SoundService = game:GetService("SoundService")
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local UIS = game:GetService("UserInputService")
@@ -115,11 +116,11 @@ local function Attack()
 				WeaponActivation:FireServer("CheckHitbox")
 			end
 		elseif Player.ValuesFolder.Weapons.Value == "Watermelon" then
-			WeaponActivation:FireServer("CheckHitbox")
+			WeaponActivation:FireServer("CheckHitbox", Mouse.Hit.Position)
 		elseif Player.ValuesFolder.Weapons.Value == "Rokakaka" then
 			WeaponActivation:FireServer("CheckHitbox")
 		elseif Player.ValuesFolder.Weapons.Value == "GomuGomuNoMi" then
-			WeaponActivation:FireServer("CheckHitbox")
+			WeaponActivation:FireServer("CheckHitbox", Mouse.Hit.Position)
 		end
 	end
 end
@@ -277,11 +278,13 @@ UIS.InputEnded:Connect(function(Input, GameProcessedEvent)
 end)
 
 WeaponEquipped.Equipped:Connect(function() -- Equip weapon, play anim
+	SoundService:PlayLocalSound(ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Equip"))
 	AnimationHandler:PlayAnimation(Character, "Apple", "Idle")
 end)
 
 WeaponEquipped.Unequipped:Connect(function() -- Cancel scope, Unequip Weapon, stop anims
 	-- CancelScope()
+	SoundService:PlayLocalSound(ReplicatedStorage:WaitForChild("Sounds"):WaitForChild("Equip"))
 	local PlayingAnimations = Animator:GetPlayingAnimationTracks()
 	
 	for _, Anims in pairs(PlayingAnimations) do
