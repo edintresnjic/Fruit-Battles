@@ -47,6 +47,8 @@ local Settings = {
 	["Lobby Music"] = true
 }
 
+local EquipCooldown = false
+
 
 local function PlaySound()
 	local Sound = script:WaitForChild("GUISound")
@@ -87,7 +89,13 @@ local ShopIcon = Icon.new()
 			PlaySound()
 			if string.lower(ShopPopup:WaitForChild("Info"):WaitForChild("BTN"):WaitForChild("TextLabel").Text) == "equip" then
 				-- Equipping
-				ShopEvent:InvokeServer("Equip", ShopPopup.Info.ProductName.Text)
+				if not EquipCooldown then
+					EquipCooldown = true
+					ShopEvent:InvokeServer("Equip", ShopPopup.Info.ProductName.Text)
+					task.delay(5, function()
+						EquipCooldown = false
+					end)
+				end
 			elseif ShopPopup:WaitForChild("Info"):WaitForChild("BTN"):WaitForChild("TextLabel").Text:match("PURCHASE") then
 				local Status = ShopEvent:InvokeServer("Purchase", ShopPopup.Info.ProductName.Text)
 				if Status == "Bought" then

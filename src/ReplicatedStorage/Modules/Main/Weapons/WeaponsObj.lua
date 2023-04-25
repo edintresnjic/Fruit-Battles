@@ -359,6 +359,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 
 		elseif self.Name == "Lemon" then
 			-- Setting
+			PlayerCharacter:SetAttribute("InUltimate", true)
 			PlayerCharacter:SetAttribute("CanShoot", false)
 			PlayerCharacter.Humanoid.JumpHeight = 0
 			PlayerCharacter.Humanoid.WalkSpeed = 0
@@ -1062,19 +1063,19 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 				end)
 
 				local Players = GetNearbyPlayers(Bullet, 75)
-				for _, Player in ipairs(Players) do
+				for _, HitPlayer in ipairs(Players) do
 					CameraHandler:FireClient(Player)
-					Player.Character.Humanoid.Health -= 50
-					KnockBack(Player.Character, Player.Character.HumanoidRootPart.CFrame.LookVector * -10)
+					HitPlayer.Character.Humanoid.Health -= 50
+					KnockBack(HitPlayer.Character, HitPlayer.Character.HumanoidRootPart.CFrame.LookVector * -10)
 					-- Setting atributes
-					local Distance = (PlayerCharacter.HumanoidRootPart.Position - Player.Character.HumanoidRootPart.Position).Magnitude
-					Player.Character:SetAttribute("Distance", Distance)
-					Player.Character:SetAttribute("Killer", Player.Name)
+					local Distance = (PlayerCharacter.HumanoidRootPart.Position - HitPlayer.Character.HumanoidRootPart.Position).Magnitude
+					HitPlayer.Character:SetAttribute("Distance", Distance)
+					HitPlayer.Character:SetAttribute("Killer", Player.Name)
 						
 					-- Resetting killfeed
 					task.delay(10, function() -- Reset
-						Player.Character:SetAttribute("Distance", "")
-						Player.Character:SetAttribute("Killer", "")
+						HitPlayer.Character:SetAttribute("Distance", "")
+						HitPlayer.Character:SetAttribute("Killer", "")
 					end)
 				end
 			end)
@@ -1407,7 +1408,7 @@ function Weapons:Ultimate(Player, Status, MousePosition, Type)
 									hitPartsParent:SetAttribute("Distance", "")
 									hitPartsParent:SetAttribute("Killer", "")
 								end)
-								
+
 								KnockBack(hitPartsParent, ((PlayerCharacter.HumanoidRootPart.CFrame.LookVector * Vector3.new(1, 3, 1)).Unit * 700))
 								table.insert(charactersOnDebounce, hitPartsParent.Name)
 							end
@@ -1725,7 +1726,7 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 		end
 		local direction = (MousePosition - PlayerCharacter.RightHand.Position).Unit
 		
-		for i = 1, 6 do
+		for i = 1, 3 do
 			Fire(direction)
 		end
 		-- local ActiveCast = self.Caster:Fire(PlayerCharacter.RightHand.Position, (MousePosition - PlayerCharacter.RightHand.Position).Unit, self.Speed, CastBehavior)
@@ -1890,7 +1891,7 @@ function Weapons:Activated(Player, MousePosition, FirePoint, Weapon) -- Attack
 		end
 		local direction = (MousePosition - PlayerCharacter.RightHand.Position).Unit
 
-		for i = 1, 6 do
+		for i = 1, 3 do
 			Fire(direction)
 		end
 		-- local ActiveCast = self.Caster:Fire(PlayerCharacter.RightHand.Position, (MousePosition - PlayerCharacter.RightHand.Position).Unit, self.Speed, CastBehavior)

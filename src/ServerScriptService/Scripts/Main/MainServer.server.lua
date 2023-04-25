@@ -273,7 +273,26 @@ SetSoundID.OnServerEvent:Connect(function(Player, SoundID)
 end)
 
 local function CharacterAdded(Character)
-	print("Got called")
+	local SpawnPoints = workspace:WaitForChild("Map"):WaitForChild("SpawnPoints"):GetChildren()
+
+	local FoundSpot
+	task.spawn(function()
+		repeat
+			task.wait()
+			local SpawnPoint = SpawnPoints[math.random(1, #SpawnPoints)]
+			print(SpawnPoint)
+			print(SpawnPoint:GetAttribute("RecentSpawn"))
+			if SpawnPoint:GetAttribute("RecentSpawn") == false then
+				Character.HumanoidRootPart.CFrame = SpawnPoint.CFrame
+				SpawnPoint:SetAttribute("RecentSpawn", true)
+				FoundSpot = true
+				task.delay(7, function()
+					SpawnPoint:SetAttribute("RecentSpawn", false)
+				end)
+			end
+		until FoundSpot == true
+	end)
+	
 	local Player = Players:GetPlayerFromCharacter(Character)
 	if Player:GetAttribute("HasDied") and Player:GetAttribute("HasDied") == true then
 		Player:SetAttribute("HasDied", false)
@@ -324,27 +343,6 @@ local function CharacterAdded(Character)
 			Character:SetAttribute("UltimateCooldown", false)
 		end)
 	end
-
-	local SpawnPoints = workspace:WaitForChild("Map"):WaitForChild("SpawnPoints"):GetChildren()
-
-	local FoundSpot
-	task.spawn(function()
-		repeat
-			task.wait()
-			local SpawnPoint = SpawnPoints[math.random(1, #SpawnPoints)]
-			print(SpawnPoint)
-			print(SpawnPoint:GetAttribute("RecentSpawn"))
-			if SpawnPoint:GetAttribute("RecentSpawn") == false then
-				Character.HumanoidRootPart.CFrame = SpawnPoint.CFrame
-				SpawnPoint:SetAttribute("RecentSpawn", true)
-				FoundSpot = true
-				task.delay(7, function()
-					SpawnPoint:SetAttribute("RecentSpawn", false)
-				end)
-			end
-		until FoundSpot == true
-	end)
-	
 	-- Adding aura vfx
 	Character:GetAttributeChangedSignal("UltimateCooldown"):Connect(function()
 		if Character:GetAttribute("UltimateCooldown") == false then
